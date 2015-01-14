@@ -49,9 +49,6 @@ func handle(w http.ResponseWriter, r *http.Request) {
 }
 
 func list(w http.ResponseWriter, r *http.Request, node *mega.Node) {
-	type List struct {
-		File []string
-	}
 	children, err := megaSession.FS.GetChildren(node)
 	if err != nil {
 		fmt.Fprintf(w, "error getting children: %s", err)
