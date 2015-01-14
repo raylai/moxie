@@ -15,27 +15,14 @@ const CACHEDIR = "cache"
 var megaSession *mega.Mega
 
 func handle(w http.ResponseWriter, r *http.Request) {
-	var node *mega.Node
-
-	trimmedPath := strings.Trim(r.URL.Path, "/")
-	path := strings.Split(trimmedPath, "/")
-	root := megaSession.FS.GetRoot()
-	// Root path is an empty array.
-	if path[0] == "" {
-		node = root
-	} else {
-		paths, err := megaSession.FS.PathLookup(root, path)
-		if err != nil {
-			// XXX should be 404
-			fmt.Fprintf(w, "invalid path: %s\n", r.URL.Path)
-			return
-		}
-		// We only care about the last path.
-		node = paths[len(paths)-1]
-	}
-
 	switch r.Method {
 	case "GET":
+		node, err := node(r.URL.Path)
+		if err != nil {
+			// XXX 404
+			fmt.Print(err)
+			return
+		}
 		switch node.GetType() {
 		case mega.FOLDER, mega.ROOT:
 			list(w, r, node)
@@ -44,7 +31,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		}
 
 	case "PUT":
-		put(w, r, node)
+		put(w, r)
 	}
 }
 
@@ -95,7 +82,7 @@ func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 	}
 }
 
-func put(w http.ResponseWriter, r *http.Request, node *mega.Node) {
+func put(w http.ResponseWriter, r *http.Request) {
 	//func (m *Mega) CreateDir(name string, parent *Node) (*Node, error)
 	/*
 		tmpfile = ok.MkTemp()
@@ -104,6 +91,24 @@ func put(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 		name := path[len(path)-1]
 		megaSession.UploadFile(tmpfile, node, name, nil) (*Node, error)
 	*/
+}
+
+func node(url string) (*mega.Node, error) {
+	trimmedPath := strings.Trim(url, "/")
+	path := strings.Split(trimmedPath, "/")
+	root := megaSession.FS.GetRoot()
+	// Root path is an empty array.
+	if path[0] == "" {
+		return root, nil
+	} else {
+		paths, err := megaSession.FS.PathLookup(root, path)
+		if err != nil {
+			// XXX should be 404
+			return nil, err
+		}
+		// We only care about the last path.
+		return paths[len(paths)-1], nil
+	}
 }
 
 func main() {
