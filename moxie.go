@@ -89,23 +89,9 @@ func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 		return
 	}
 	defer file.Close()
-	data := make([]byte, 1024*1024)
-	for {
-		nr, err := file.Read(data)
-		if err == io.EOF {
-			return
-		}
-		if err != nil {
-			log.Printf("error reading %s: %s", tempfile, err)
-		}
-		for nr != 0 {
-			nw, err := w.Write(data[:nr])
-			if err != nil {
-				log.Printf("error sending data: %s", err)
-				return
-			}
-			nr -= nw
-		}
+	_, err = io.Copy(w, file)
+	if err != nil {
+		log.Print(err)
 	}
 }
 
