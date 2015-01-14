@@ -79,6 +79,7 @@ func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 	_, err = io.Copy(w, file)
 	if err != nil {
 		log.Print(err)
+		return
 	}
 }
 
