@@ -51,7 +51,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 func list(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 	children, err := megaSession.FS.GetChildren(node)
 	if err != nil {
-		fmt.Fprintf(w, "error getting children: %s", err)
+		fmt.Print(err)
 		// XXX 500
 		return
 	}
