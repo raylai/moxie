@@ -104,6 +104,7 @@ func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 			nw, err := w.Write(data[:nr])
 			if err != nil {
 				log.Printf("error sending data: %s", err)
+				return
 			}
 			nr -= nw
 		}
