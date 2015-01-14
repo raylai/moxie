@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 )
 
@@ -84,14 +85,52 @@ func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 }
 
 func put(w http.ResponseWriter, r *http.Request) {
-	//func (m *Mega) CreateDir(name string, parent *Node) (*Node, error)
-	/*
-		tmpfile = ok.MkTemp()
-		defer os.Remove(tmpfile)
-		write(tmpfile, r.Data)
-		name := path[len(path)-1]
-		megaSession.UploadFile(tmpfile, node, name, nil) (*Node, error)
-	*/
+	cachefile := CACHEDIR + r.URL.Path
+	dir, name := path.Split(cachefile)
+	if err := os.MkdirAll(dir, 0700); err != nil && !os.IsExist(err) {
+		log.Print(err)
+		return
+	}
+	fp, err := os.Create(cachefile)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	_, err = io.Copy(fp, r.Body)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	dirarray := strings.Split(r.URL.Path, "/")
+	root := megaSession.FS.GetRoot()
+	n, err := mkpath(dirarray[1:len(dirarray)-1], root)
+	if err != nil {
+		log.Print("mkpath", err)
+		return
+	}
+	_, err = megaSession.UploadFile(cachefile, n, name, nil)
+	if err != nil {
+		log.Print("upload", err)
+		return
+	}
+}
+
+func mkpath(p []string, parent *mega.Node) (*mega.Node, error) {
+	var n *mega.Node
+	var err error
+	l := len(p)
+
+	if l == 1{
+		n = parent
+	} else {
+		// if a/b/c then parent = mkpath(a/b)
+		n, err = mkpath(p[:l-1], parent)
+		if err != nil {
+			return n, err
+		}
+	}
+	return megaSession.CreateDir(p[l-1], n)
 }
 
 func node(url string) (*mega.Node, error) {
