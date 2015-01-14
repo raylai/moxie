@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/t3rm1n4l/go-mega"
 	"html"
-	"html/template"
 	"io"
 	"log"
 	"net/http"
@@ -75,12 +74,7 @@ func list(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 			html.EscapeString(child.GetName()), folder,
 			html.EscapeString(child.GetName()), folder)
 	}
-	fmt.Fprint(w, "</ul></body></html>\n")
-	t, err := template.ParseFiles("list.html")
-	if err != nil {
-		fmt.Println(err)
-	}
-	t.Execute(w, nil)
+	fmt.Fprint(w, "</ul></body></html>")
 }
 
 func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
