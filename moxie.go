@@ -87,6 +87,8 @@ func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 func put(w http.ResponseWriter, r *http.Request) {
 	cachefile := CACHEDIR + r.URL.Path
 	dir, name := path.Split(cachefile)
+
+	// Create local file
 	if err := os.MkdirAll(dir, 0700); err != nil && !os.IsExist(err) {
 		log.Print(err)
 		return
@@ -102,6 +104,7 @@ func put(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Create Mega path
 	dirarray := strings.Split(r.URL.Path, "/")
 	root := megaSession.FS.GetRoot()
 	n, err := mkpath(dirarray[1:len(dirarray)-1], root)
@@ -109,6 +112,25 @@ func put(w http.ResponseWriter, r *http.Request) {
 		log.Print("mkpath", err)
 		return
 	}
+
+	// Lookup Mega file (if it exists)
+	paths, err := megaSession.FS.PathLookup(root, dirarray[1:])
+	// Log unexpected errors
+	if err != nil && err.Error() != "Object (typically, node or user) not found" {
+		log.Print(err)
+		return
+	}
+	// File exists, so delete it before uploading new file
+	if err == nil {
+		// We only care about the last node.
+		lastnode := paths[len(paths)-1]
+		// File exists, delete! (aka overwrite)
+		if err = megaSession.Delete(lastnode, false); err != nil {
+			log.Print(err)
+			return
+		}
+	}
+	// Finally, upload file
 	_, err = megaSession.UploadFile(cachefile, n, name, nil)
 	if err != nil {
 		log.Print("upload", err)
