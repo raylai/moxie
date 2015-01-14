@@ -86,6 +86,7 @@ func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 	file, err := os.Open(tempfile) // For read access.
 	if err != nil {
 		log.Printf("error opening %s: %s", tempfile, err)
+		return
 	}
 	defer file.Close()
 	data := make([]byte, 1024*1024)
