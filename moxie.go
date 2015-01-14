@@ -119,8 +119,23 @@ func put(w http.ResponseWriter, r *http.Request) {
 func mkpath(p []string, parent *mega.Node) (*mega.Node, error) {
 	var n *mega.Node
 	var err error
-	l := len(p)
 
+	root := megaSession.FS.GetRoot()
+	// Root path is an empty array.
+	if p[0] == "" {
+		return root, nil
+	}
+
+	paths, err := megaSession.FS.PathLookup(root, p)
+	if err == nil {
+		// We only care about the last path.
+		return paths[len(paths)-1], nil
+	} else if err.Error() != "Object (typically, node or user) not found" {
+		log.Printf("not exist: %#v\n", err)
+		return nil, err
+	}
+
+	l := len(p)
 	if l == 1{
 		n = parent
 	} else {
