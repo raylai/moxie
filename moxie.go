@@ -69,7 +69,7 @@ func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 	cachefile := CACHEDIR + r.URL.Path
 	dir, _ := path.Split(cachefile)
 
-	// Create local file
+	// Create local path
 	if err := os.MkdirAll(dir, 0700); err != nil && !os.IsExist(err) {
 		log.Print(err)
 		return
@@ -78,6 +78,7 @@ func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 	if err != nil && os.IsNotExist(err) {
 		if err = megaSession.DownloadFile(node, cachefile, nil); err != nil {
 			log.Print(err)
+			// Remove incomplete cachefile, in case one was created
 			os.Remove(cachefile)
 			return
 		}
