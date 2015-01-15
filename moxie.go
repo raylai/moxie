@@ -18,7 +18,7 @@ var megaSession *mega.Mega
 func handle(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		node, err := node(r.URL.Path)
+		node, err := lookup(r.URL.Path)
 		if err != nil {
 			if err.Error() == "Object (typically, node or user) not found" {
 				w.WriteHeader(http.StatusNotFound)
@@ -193,7 +193,7 @@ func mkpath(p []string, parent *mega.Node) (*mega.Node, error) {
 	return megaSession.CreateDir(p[l-1], n)
 }
 
-func node(url string) (*mega.Node, error) {
+func lookup(url string) (*mega.Node, error) {
 	trimmedPath := strings.Trim(url, "/")
 	path := strings.Split(trimmedPath, "/")
 	root := megaSession.FS.GetRoot()
