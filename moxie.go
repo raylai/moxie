@@ -125,16 +125,19 @@ func put(w http.ResponseWriter, r *http.Request) {
 	// Create local file
 	if err := os.MkdirAll(dir, 0700); err != nil && !os.IsExist(err) {
 		log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	fp, err := os.Create(cachefile)
 	if err != nil {
 		log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	_, err = io.Copy(fp, r.Body)
 	if err != nil {
 		log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -152,6 +155,7 @@ func put(w http.ResponseWriter, r *http.Request) {
 	// Log unexpected errors
 	if err != nil && err.Error() != "Object (typically, node or user) not found" {
 		log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	// File exists, so delete it before uploading new file
@@ -161,6 +165,7 @@ func put(w http.ResponseWriter, r *http.Request) {
 		// File exists, delete! (aka overwrite)
 		if err = megaSession.Delete(lastnode, false); err != nil {
 			log.Print(err)
+			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 	}
@@ -168,6 +173,7 @@ func put(w http.ResponseWriter, r *http.Request) {
 	_, err = megaSession.UploadFile(cachefile, n, name, nil)
 	if err != nil {
 		log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
