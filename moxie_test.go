@@ -8,14 +8,7 @@ import (
 )
 
 func TestConnect(t *testing.T) {
-	client := &http.Client{}
-
-	req, err := http.NewRequest("GET", "http://127.0.0.1:8080", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp, err := client.Do(req)
+	resp, err := http.Get("http://127.0.0.1:8080/")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -26,14 +19,7 @@ func TestConnect(t *testing.T) {
 }
 
 func TestListRoot(t *testing.T) {
-	client := &http.Client{}
-
-	req, err := http.NewRequest("GET", "http://127.0.0.1:8080", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	resp, err := client.Do(req)
+	resp, err := http.Get("http://127.0.0.1:8080/")
 	if err != nil {
 		t.Fatal(err)
 	}
