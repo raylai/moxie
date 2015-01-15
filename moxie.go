@@ -78,6 +78,7 @@ func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 	if err != nil && os.IsNotExist(err) {
 		if err = megaSession.DownloadFile(node, cachefile, nil); err != nil {
 			log.Print(err)
+			w.WriteHeader(http.StatusInternalServerError)
 			// Remove incomplete cachefile, in case one was created
 			os.Remove(cachefile)
 			return
@@ -85,6 +86,7 @@ func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 		file, err = os.Open(cachefile)
 		if err != nil {
 			log.Print(err)
+			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 	}
@@ -92,6 +94,7 @@ func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 	_, err = io.Copy(w, file)
 	if err != nil {
 		log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
