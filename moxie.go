@@ -13,6 +13,7 @@ import (
 )
 
 const CACHEDIR = "cache"
+
 var megaSession *mega.Mega
 
 func handle(w http.ResponseWriter, r *http.Request) {
@@ -178,13 +179,13 @@ func mkpath(p []string, parent *mega.Node) (*mega.Node, error) {
 	if err == nil {
 		// We only care about the last path.
 		return paths[len(paths)-1], nil
-	// Expected "not found" error, got something else
 	} else if err.Error() != "Object (typically, node or user) not found" {
+		// Expected "not found" error, got something else
 		return nil, err
 	}
 
 	l := len(p)
-	if l == 1{
+	if l == 1 {
 		n = parent
 	} else {
 		// if a/b/c then parent = mkpath(a/b)
