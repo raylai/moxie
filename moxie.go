@@ -66,6 +66,7 @@ func list(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 }
 
 func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
+	// Cache files
 	cachefile := CACHEDIR + r.URL.Path
 	dir, _ := path.Split(cachefile)
 
@@ -74,8 +75,10 @@ func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 		log.Print(err)
 		return
 	}
+	// Do we have this cached?
 	file, err := os.Open(cachefile)
 	if err != nil && os.IsNotExist(err) {
+		// Download file
 		if err = megaSession.DownloadFile(node, cachefile, nil); err != nil {
 			log.Print(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -83,6 +86,8 @@ func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 			os.Remove(cachefile)
 			return
 		}
+
+		// Open cached file
 		file, err = os.Open(cachefile)
 		if err != nil {
 			log.Print(err)
