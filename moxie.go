@@ -70,14 +70,16 @@ func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 	cachefile := CACHEDIR + r.URL.Path
 	dir, _ := path.Split(cachefile)
 
-	// Create local path
-	if err := os.MkdirAll(dir, 0700); err != nil && !os.IsExist(err) {
-		log.Print(err)
-		return
-	}
 	// Do we have this cached?
 	file, err := os.Open(cachefile)
 	if err != nil && os.IsNotExist(err) {
+		// Build directory structure first
+		if err := os.MkdirAll(dir, 0700); err != nil && !os.IsExist(err) {
+			log.Print(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		// Download file
 		if err = megaSession.DownloadFile(node, cachefile, nil); err != nil {
 			log.Print(err)
