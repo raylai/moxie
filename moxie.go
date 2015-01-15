@@ -1,4 +1,4 @@
-package moxie
+package main
 
 import (
 	"fmt"
