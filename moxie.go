@@ -144,10 +144,16 @@ func put(w http.ResponseWriter, r *http.Request) {
 	// Create Mega path
 	dirarray := strings.Split(r.URL.Path, "/")
 	root := megaSession.FS.GetRoot()
-	n, err := mkpath(dirarray[1:len(dirarray)-1], root)
-	if err != nil {
-		log.Print(err)
-		return
+	var n *mega.Node
+	if len(dirarray) == 2 {
+		n = root
+	} else {
+		n, err = mkpath(dirarray[1:len(dirarray)-1], root)
+		if err != nil {
+			log.Print(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// Lookup Mega file (if it exists)
