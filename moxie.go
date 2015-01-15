@@ -20,7 +20,10 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		node, err := node(r.URL.Path)
 		if err != nil {
-			// XXX 404
+			if err.Error() == "Object (typically, node or user) not found" {
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
 			log.Print(err)
 			return
 		}
@@ -39,8 +42,8 @@ func handle(w http.ResponseWriter, r *http.Request) {
 func list(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 	children, err := megaSession.FS.GetChildren(node)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		log.Print(err)
-		// XXX 500
 		return
 	}
 
@@ -181,7 +184,6 @@ func node(url string) (*mega.Node, error) {
 	} else {
 		paths, err := megaSession.FS.PathLookup(root, path)
 		if err != nil {
-			// XXX should be 404
 			return nil, err
 		}
 		// We only care about the last path.
