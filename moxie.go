@@ -66,18 +66,30 @@ func list(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 }
 
 func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
-	hash := node.GetHash()
-	tempfile := fmt.Sprintf("%s/%s", CACHEDIR, hash)
-	err := megaSession.DownloadFile(node, tempfile, nil)
-	if err != nil {
+	cachefile := CACHEDIR + r.URL.Path
+	dir, _ := path.Split(cachefile)
+
+	// Create local file
+	if err := os.MkdirAll(dir, 0700); err != nil && !os.IsExist(err) {
 		log.Print(err)
-		os.Remove(tempfile)
 		return
 	}
-	file, err := os.Open(tempfile) // For read access.
-	if err != nil {
-		log.Print(err)
-		return
+	file, err := os.Open(cachefile)
+	if err != nil && os.IsNotExist(err) {
+		if err = megaSession.DownloadFile(node, cachefile, nil); err != nil {
+			log.Print(err)
+			os.Remove(cachefile)
+			return
+		}
+		if err != nil {
+			log.Print(err)
+			return
+		}
+		file, err = os.Open(cachefile)
+		if err != nil {
+			log.Print(err)
+			return
+		}
 	}
 	defer file.Close()
 	_, err = io.Copy(w, file)
