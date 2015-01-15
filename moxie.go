@@ -76,7 +76,15 @@ func get(w http.ResponseWriter, r *http.Request) {
 
 	// Do we have this cached?
 	file, err := os.Open(cachefile)
-	if err != nil && os.IsNotExist(err) {
+	if err != nil {
+		// Unexpected error
+		if !os.IsNotExist(err) {
+			log.Print(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		// Expected error: file not found = cache miss
 		// Build directory structure first
 		if err := os.MkdirAll(dir, 0700); err != nil && !os.IsExist(err) {
 			log.Print(err)
