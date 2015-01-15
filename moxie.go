@@ -21,7 +21,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		node, err := node(r.URL.Path)
 		if err != nil {
 			// XXX 404
-			fmt.Print(err)
+			log.Print(err)
 			return
 		}
 		switch node.GetType() {
@@ -39,7 +39,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 func list(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 	children, err := megaSession.FS.GetChildren(node)
 	if err != nil {
-		fmt.Print(err)
+		log.Print(err)
 		// XXX 500
 		return
 	}
@@ -67,13 +67,13 @@ func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 	tempfile := fmt.Sprintf("%s/%s", CACHEDIR, hash)
 	err := megaSession.DownloadFile(node, tempfile, nil)
 	if err != nil {
-		log.Printf("download failed: %s", err)
+		log.Print(err)
 		os.Remove(tempfile)
 		return
 	}
 	file, err := os.Open(tempfile) // For read access.
 	if err != nil {
-		log.Printf("error opening %s: %s", tempfile, err)
+		log.Print(err)
 		return
 	}
 	defer file.Close()
@@ -109,7 +109,7 @@ func put(w http.ResponseWriter, r *http.Request) {
 	root := megaSession.FS.GetRoot()
 	n, err := mkpath(dirarray[1:len(dirarray)-1], root)
 	if err != nil {
-		log.Print("mkpath", err)
+		log.Print(err)
 		return
 	}
 
@@ -133,7 +133,7 @@ func put(w http.ResponseWriter, r *http.Request) {
 	// Finally, upload file
 	_, err = megaSession.UploadFile(cachefile, n, name, nil)
 	if err != nil {
-		log.Print("upload", err)
+		log.Print(err)
 		return
 	}
 }
