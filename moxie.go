@@ -82,10 +82,6 @@ func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 			os.Remove(cachefile)
 			return
 		}
-		if err != nil {
-			log.Print(err)
-			return
-		}
 		file, err = os.Open(cachefile)
 		if err != nil {
 			log.Print(err)
