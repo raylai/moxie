@@ -3,6 +3,7 @@ package main
 import (
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 )
@@ -33,5 +34,57 @@ func TestListRoot(t *testing.T) {
 	}
 	if !strings.Contains(string(body), "</ul></body></html>") {
 		t.Fatal("listing failed")
+	}
+}
+
+func TestPut(t *testing.T) {
+	const FILE = "moxie_test.go"
+	const URL = "http://127.0.0.1:8080/" + FILE
+
+	// Read test file
+	file, err := os.Open(FILE)
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := &http.Client{}
+	filebody, err := ioutil.ReadAll(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = file.Seek(0, 0); err != nil {
+		t.Fatal(err)
+	}
+
+	// Upload file
+	preq, err := http.NewRequest("PUT", URL, file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	presp, err := client.Do(preq)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer presp.Body.Close()
+	if presp.StatusCode != http.StatusOK {
+		t.Fatalf("Status Code %d", presp.StatusCode)
+	}
+
+	// Get file
+	gresp, err := http.Get(URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer gresp.Body.Close()
+	if gresp.StatusCode != http.StatusOK {
+		t.Fatalf("Status Code %d", gresp.StatusCode)
+	}
+	body, err := ioutil.ReadAll(gresp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Compare
+	if string(filebody) != string(body) {
+		t.Fatal("PUT failed")
 	}
 }
