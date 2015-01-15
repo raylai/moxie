@@ -18,22 +18,7 @@ var megaSession *mega.Mega
 func handle(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		node, err := lookup(r.URL.Path)
-		if err != nil {
-			if err.Error() == "Object (typically, node or user) not found" {
-				w.WriteHeader(http.StatusNotFound)
-				return
-			}
-			log.Print(err)
-			return
-		}
-		switch node.GetType() {
-		case mega.FOLDER, mega.ROOT:
-			list(w, r, node)
-		default:
-			get(w, r, node)
-		}
-
+		get(w, r)
 	case "PUT":
 		put(w, r)
 	}
@@ -65,7 +50,25 @@ func list(w http.ResponseWriter, r *http.Request, node *mega.Node) {
 	fmt.Fprint(w, "</ul></body></html>")
 }
 
-func get(w http.ResponseWriter, r *http.Request, node *mega.Node) {
+func get(w http.ResponseWriter, r *http.Request) {
+	node, err := lookup(r.URL.Path)
+	if err != nil {
+		if err.Error() == "Object (typically, node or user) not found" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// List directories
+	switch node.GetType() {
+	case mega.FOLDER, mega.ROOT:
+		list(w, r, node)
+		return
+	}
+
 	// Cache files
 	cachefile := CACHEDIR + r.URL.Path
 	dir, _ := path.Split(cachefile)
