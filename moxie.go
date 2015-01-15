@@ -149,11 +149,12 @@ func mkpath(p []string, parent *mega.Node) (*mega.Node, error) {
 	}
 
 	paths, err := megaSession.FS.PathLookup(root, p)
+	// Path found
 	if err == nil {
 		// We only care about the last path.
 		return paths[len(paths)-1], nil
+	// Expected "not found" error, got something else
 	} else if err.Error() != "Object (typically, node or user) not found" {
-		log.Printf("not exist: %#v\n", err)
 		return nil, err
 	}
 
