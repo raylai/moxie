@@ -72,6 +72,7 @@ func get(w http.ResponseWriter, r *http.Request) {
 
 	// Cache files
 	cachefile := CACHEDIR + r.URL.Path
+	tmpfile := cachefile + ".part"
 	dir, _ := path.Split(cachefile)
 
 	// Do we have this cached?
@@ -93,11 +94,18 @@ func get(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Download file
-		if err = megaSession.DownloadFile(node, cachefile, nil); err != nil {
+		if err = megaSession.DownloadFile(node, tmpfile, nil); err != nil {
 			log.Print(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			// Remove incomplete cachefile, in case one was created
-			os.Remove(cachefile)
+			os.Remove(tmpfile)
+			return
+		}
+
+		if err = os.Rename(tmpfile, cachefile); err != nil {
+			log.Print(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			os.Remove(tmpfile)
 			return
 		}
 
