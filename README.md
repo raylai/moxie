@@ -1,6 +1,6 @@
 # moxie
 
-A caching, RESTful proxy to Mega.co.nz written in Go.
+Mega Proxy
 
 	export MEGA_USER=moxie@example.com MEGA_PASSWD="You've got moxie!"
 	go run moxie.go
