@@ -92,3 +92,39 @@ func TestPut(t *testing.T) {
 		}
 	}
 }
+
+func TestConcurrentGet(t *testing.T) {
+	const PATH = "/MySQL Dump/dump/location.txt.gz"
+	const URL = "http://127.0.0.1:8080" + PATH
+	const CACHEFILE = "cache" + PATH
+	const PARTFILE = CACHEFILE + ".part"
+	const MAX = 10
+
+	// Clear cache
+	if err := os.Remove(CACHEFILE); err != nil && !os.IsNotExist(err) {
+		t.Fatal(err)
+	}
+	if err := os.Remove(PARTFILE); err != nil && !os.IsNotExist(err) {
+		t.Fatal(err)
+	}
+
+	c := make(chan int)
+	for i := 0; i < MAX; i++ {
+		go func(n int) {
+			resp, err := http.Get(URL)
+			if err != nil {
+				t.Fatal(err)
+			}
+			_, err = ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+			resp.Body.Close()
+			c <- n
+		}(i)
+	}
+
+	for i := 0; i < MAX; i++ {
+		<-c
+	}
+}
