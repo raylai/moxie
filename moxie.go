@@ -307,7 +307,7 @@ func lookup(url string) (*mega.Node, error) {
 }
 
 func main() {
-	log.SetFlags(log.Lshortfile)
+	log.SetFlags(log.Ldate|log.Ltime|log.Lshortfile)
 	user := os.Getenv("MEGA_USER")
 	pass := os.Getenv("MEGA_PASSWD")
 	megaSession = mega.New()
